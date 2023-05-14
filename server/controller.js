@@ -13,6 +13,45 @@ const sequelize = new Sequelize(CONNECTION_STRING, {
 })
 
 module.exports = {
+    getCountries: (req, res) => {
+        sequelize.query(`SELECT id, name FROM countries;`)  
+        .then((dbResponse) => res.status(200).send(dbResponse[0]))
+        .catch((err) => console.log(err)) 
+    },
+
+    createCities: (req, res) => {
+        const { name, rating, city_id } = req.body
+        sequelize.query(`
+            INSERT INTO
+                cities (name, rating, city_id)
+            VALUES
+                ('${name}', ${rating}, '${city_id}');
+        `)  
+        .then((dbResponse) => res.status(200).send(dbResponse[0]))
+        .catch((err) => console.log(err)) 
+    },
+
+    getCities: (req, res) => {
+        sequelize.query(`
+            SELECT cities.city_id, cities.name AS city, cities.rating, countries.country_id, countries.name AS country
+            FROM cities
+            JOIN countries
+            ON cities.country_id = countries.country_id;`)  
+        .then((dbResponse) => res.status(200).send(dbResponse[0]))
+        .catch((err) => console.log(err)) 
+    },
+
+    deleteCity: (req, res) => {
+        const { id } = req.params
+
+        sequelize.query(`
+            DELETE FROM cities WHERE id = ${id};  
+        `)
+        .then((dbResponse) => res.status(200).send(dbResponse[0]))
+        .catch((err) => console.log(err))
+
+    },
+
     seed: (req, res) => {
         sequelize.query(`
             drop table if exists cities;
@@ -27,7 +66,7 @@ module.exports = {
                 city_id serial primary key,
                 name varchar,
                 rating integer,
-                country_id integer references countries(country_id)
+                city_id integer references countries(country_id)
             )
 
             insert into countries (name)
